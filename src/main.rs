@@ -13,6 +13,7 @@ struct Car {
 struct QueryParamsDistance{
     yearOfProduction: String,
     fuelUsagePer100Km: String,
+    distance: String,
 }
 
 #[derive(Deserialize)]
@@ -79,13 +80,14 @@ fn convert_fail_probability(car: Car) -> String{
 async fn calculate_dissel_usage_for_distance(query_params: web::Query<QueryParamsDistance>) -> Result<impl Responder> {
     let converted_year_of_production = query_params.yearOfProduction.to_string().parse::<u16>().unwrap();
     let converted_fuel_usage_per_100_km = query_params.fuelUsagePer100Km.to_string().parse::<f64>().unwrap();
+    let converted_distance_ = query_params.distance.to_string().parse::<u32>().unwrap();
 
     let c_6 = Car {
         year_of_production: converted_year_of_production,
         fuel_usage_per_100_km: converted_fuel_usage_per_100_km, 
         model: "PeopleCar PasWagon C6".to_string()
     };
-    let car_info_fuel = CarInfoFuel{fuel_usage: c_6.fuel_consumption(1000)};
+    let car_info_fuel = CarInfoFuel{fuel_usage: c_6.fuel_consumption(converted_distance_)};
     Ok(web::Json(car_info_fuel))
 }
 
