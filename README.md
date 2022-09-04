@@ -28,8 +28,8 @@ failed:
 
 success:
 
-![success](https://img001.prntscr.com/file/img001/ycWX3Q5QSjqRwZ1uME7k2Q.png)
+![success](https://img001.prntscr.com/file/img001/SStB2pw8SECLeY_nX-BOTg.png)
 
 failed:
 
-![failed](https://img001.prntscr.com/file/img001/qkJ7bGS7RDKKKGnobJwlNw.png)
+![failed](https://img001.prntscr.com/file/img001/IPadcq0BRuWmMdDN-8KXHA.png)
