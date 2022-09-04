@@ -1,13 +1,34 @@
 use actix_web::{get, web, Responder, Result};
-use serde::Serialize;
+use serde::{Serialize, Deserialize};
 use chrono::Datelike;
 use rand::Rng;
 
-#[derive(Serialize)]
 struct Car {
     year_of_production: u16,
     fuel_usage_per_100_km: f64,
     model: String
+}
+
+#[derive(Deserialize)]
+struct QueryParamsDistance{
+    yearOfProduction: String,
+    fuelUsagePer100Km: String,
+}
+
+#[derive(Deserialize)]
+struct QueryParamsFail{
+    vin: String
+}
+
+
+#[derive(Serialize)]
+struct CarInfoFuel {
+    fuel_usage: f64
+}
+
+#[derive(Serialize)]
+struct CarInfoFail {
+    fail_probability: String
 }
 
 trait Calculate {
@@ -39,16 +60,54 @@ fn get_year() -> i32{
     return year;
 }
 
-
-
-fn main() {
-    let c_6 = Car {
-        year_of_production: 2020,
-        fuel_usage_per_100_km: 11.5, 
+fn get_default_car() -> Car{
+    return Car {
+        year_of_production: 2022,
+        fuel_usage_per_100_km: 10.5, 
         model: "PeopleCar PasWagon C6".to_string()
     };
+}
 
-    println!("fuel consumption = {}", c_6.fuel_consumption(100));
-    println!("fail probability = {}", c_6.fail_probability());
+fn convert_fail_probability(car: Car) -> String{
+    let mut car_fail_probability = car.fail_probability().to_string();
+    car_fail_probability.push_str("%");
+    return car_fail_probability;
+}
 
+
+#[get("/calculateDisselUsageForDistance")]
+async fn calculate_dissel_usage_for_distance(query_params: web::Query<QueryParamsDistance>) -> Result<impl Responder> {
+    let converted_year_of_production = query_params.yearOfProduction.to_string().parse::<u16>().unwrap();
+    let converted_fuel_usage_per_100_km = query_params.fuelUsagePer100Km.to_string().parse::<f64>().unwrap();
+
+    let c_6 = Car {
+        year_of_production: converted_year_of_production,
+        fuel_usage_per_100_km: converted_fuel_usage_per_100_km, 
+        model: "PeopleCar PasWagon C6".to_string()
+    };
+    let car_info_fuel = CarInfoFuel{fuel_usage: c_6.fuel_consumption(1000)};
+    Ok(web::Json(car_info_fuel))
+}
+
+#[get("/probabilityOfUnitInjectorFail")]
+async fn probability_of_unit_injector_fail(query_paramas: web::Query<QueryParamsFail>) -> Result<impl Responder> {
+
+    let vin = query_paramas.vin.to_string();
+    let c_6_default = get_default_car();
+
+    let car_info_fail = CarInfoFail{fail_probability: convert_fail_probability(c_6_default)};
+    
+    Ok(web::Json(car_info_fail))
+}
+
+#[actix_web::main]
+async fn main() -> std::io::Result<()> {
+    use actix_web::{App, HttpServer};
+
+    HttpServer::new(|| App::new()
+        .service(calculate_dissel_usage_for_distance)
+        .service(probability_of_unit_injector_fail))
+        .bind(("127.0.0.1", 8080))?
+        .run()
+        .await
 }
